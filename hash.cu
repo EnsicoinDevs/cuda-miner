@@ -89,8 +89,8 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result)
 
 char *preprocess_sha256(uint64_t length, char *array)
 {
-	// final_length is smallest number over (or equal) to length+1+64 that is divisible by 512
-	uint64_t final_length = ((length + 64)>>9 +1)<<9;
+	// final_length is smallest number over (or equal) to length+1+8 that is divisible by 512
+	uint64_t final_length = ((length + 8)>>9 +1)<<9;
 
 	// allocate space on ram
 	char *host_array;
@@ -105,7 +105,7 @@ char *preprocess_sha256(uint64_t length, char *array)
 	cudaMalloc((void**) &device_array, final_length);
 
 	// create processed array
-	//copy message
+	// copy message
 	memcpy(host_array, array, length);
 	// put a 1 after the message
 	host_array[length] = '\x80';
@@ -121,7 +121,7 @@ char *preprocess_sha256(uint64_t length, char *array)
 	cudaMemcpy(device_array, array, final_length, cudaMemcpyHostToDevice);
 
 	// free host memory space
-	free(host_array)
+	free(host_array);
 
 	return device_array;
 }
