@@ -91,7 +91,7 @@ char *preprocess_sha256(uint64_t length, char *array)
 {
 	// final_length is smallest number over (or equal) to length+1+64 that is divisible by 512
 	uint64_t final_length = ((length + 64)>>9 +1)<<9;
-	
+
 	// allocate space on ram
 	char *host_array;
 	host_array = (char*) malloc(final_length);
@@ -119,6 +119,9 @@ char *preprocess_sha256(uint64_t length, char *array)
 
 	// copy array
 	cudaMemcpy(device_array, array, final_length, cudaMemcpyHostToDevice);
-	
+
+	// free host memory space
+	free(host_array)
+
 	return device_array;
 }
