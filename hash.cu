@@ -39,7 +39,7 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result)
 		int chunk_start = chunk_i<<6;
 		
 		/* copy chunk in first 8 values of w */
-		cudaMemcpy(w, &array[chunk_start], 64, cudaMemcpyDeviceToDevice);
+		memcpy(w, &array[chunk_start], 64);
 		/* complete w by following some weird rules */
 		for (int i = 16; i < 64; i++){
 			uint32_t w15 = w[i-15];
