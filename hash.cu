@@ -62,8 +62,8 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
         if (-8 < pos_in_w < 0) {
             // copy only a right part of the nonce
             memcpy(w + pos_in_w,
-                   &nonce_value + 8 - pos_in_w,
-                   8 - pos_in_w);
+                   &nonce_value + 8 + pos_in_w,
+                   8 + pos_in_w);
         }
 
         /* complete w by following some weird rules */
