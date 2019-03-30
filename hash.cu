@@ -15,7 +15,7 @@ __constant__ uint32_t cst_k[] = {
 };
 
 __device__
-void sha256(int N, char *array, uint32_t *w, uint32_t *h_result)
+void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_position, uint64_t nonce_value)
 {
 	/* N is size of array
 	   array is preprocessed data to hash
@@ -40,6 +40,27 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result)
 		
 		/* copy chunk in first 8 values of w */
 		memcpy(w, &array[chunk_start], 64);
+		
+		// TODO : review this chunk of code
+		//change nonce if it is in the chunk
+		int pos_in_w = nonce_position - chunk_start;
+		if (0 <= pos_in_w <= 64){
+			if (pos_in_w <= 58){
+				*(w + pos_in_w) = nonce_value;
+			}else {
+				// copy only a left part of the nonce
+				memcpy(w + pos_in_w,
+					   &nonce_value,
+					   64-pos_in_w);
+			}
+		}
+		if (-8 < pos_in_w < 0){
+			// copy only a right part of the nonce
+			memcpy(w + pos_in_w,
+				   &nonce_value + 8 - pos_in_w,
+				   8 - pos_in_w);
+		}
+
 		/* complete w by following some weird rules */
 		for (int i = 16; i < 64; i++){
 			uint32_t w15 = w[i-15];
@@ -136,11 +157,12 @@ uint32_t *prepare_h_results(int n_of_threads)
 }
 
 
-uint32_t **prepare_working_memories(int n_of_threads)
+uint32_t *prepare_working_memories(int n_of_threads)
 {
-	uint32_t **working_memories;
+	uint32_t *working_memories;
 	// 64 word long working memory for each thread
 	cudaMalloc((void**) &working_memories, n_of_threads * sizeof(uint32_t) * 64);
 	return working_memories;
 }
+
 
