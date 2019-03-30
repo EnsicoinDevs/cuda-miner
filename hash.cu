@@ -35,7 +35,7 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
 
     /* pass through array in 512bits chunks (64 bytes) */
     int N_chunks = N>>6;
-    for (int chunk_i = 0; chunk_i < N_chunks; chunk_i++){
+    for (int chunk_i = 0; chunk_i < N_chunks; chunk_i++) {
         int chunk_start = chunk_i<<6;
         
         /* copy chunk in first 8 values of w */
@@ -45,21 +45,21 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
         // calculate pos relative to chunk_start in terms of bytes
         int pos_in_w = nonce_position - chunk_start;
         //change nonce if it is in the chunk
-        if (0 <= pos_in_w <= 64){
-            if (pos_in_w <= 56){
+        if (0 <= pos_in_w <= 64) {
+            if (pos_in_w <= 56) {
                 /* if the nonce is completely in the chunk,
                    copy it completely at the right location
                    (the syntax is weird because nonce_position is in bytes
                     while w is uint32_t*) */
                 *(w + pos_in_w) = nonce_value;
-            }else {
+            } else {
                 // copy only a left part of the nonce
                 memcpy(w + pos_in_w,
                        &nonce_value,
                        64-pos_in_w);
             }
         }
-        if (-8 < pos_in_w < 0){
+        if (-8 < pos_in_w < 0) {
             // copy only a right part of the nonce
             memcpy(w + pos_in_w,
                    &nonce_value + 8 - pos_in_w,
@@ -67,7 +67,7 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
         }
 
         /* complete w by following some weird rules */
-        for (int i = 16; i < 64; i++){
+        for (int i = 16; i < 64; i++) {
             uint32_t w15 = w[i-15];
             uint32_t s0 = ROTR(w15, 7) xor ROTR(w15, 18) xor w15 << 3;
             uint32_t w2 = w[i-2];
@@ -84,7 +84,7 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
         uint32_t g = h_result[6];
         uint32_t h = h_result[7];
 
-        for (int i = 0; i < 64; i++){
+        for (int i = 0; i < 64; i++) {
             uint32_t S1 = ROTR(e, 6) xor ROTR(e, 11) xor ROTR(e, 25);
             uint32_t ch = (e and f) xor ((not e) and g);
             uint32_t temp1 = h + S1 + ch + cst_k[i] + w[i];
@@ -122,7 +122,7 @@ char *preprocess_sha256(uint64_t length, char *array)
     char *host_array;
     host_array = (char*) malloc(final_length);
     // initialize final padding at 0
-    for (int i = 1; i <= 64; i += 1){
+    for (int i = 1; i <= 64; i += 1) {
         host_array[final_length - i] = 0;
     }
 
@@ -137,7 +137,7 @@ char *preprocess_sha256(uint64_t length, char *array)
     host_array[length] = '\x80';
     // write message length at the end
     char last_char = 0;
-    for (int shift = 54; shift >= 0; shift -= 8){
+    for (int shift = 54; shift >= 0; shift -= 8) {
         last_char = length>>shift - last_char<<8;
         host_array[final_length - 8] = last_char;
     }
