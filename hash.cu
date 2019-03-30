@@ -42,10 +42,15 @@ void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_posit
 		memcpy(w, &array[chunk_start], 64);
 		
 		// TODO : review this chunk of code
-		//change nonce if it is in the chunk
+		// calculate pos relative to chunk_start in terms of bytes
 		int pos_in_w = nonce_position - chunk_start;
+		//change nonce if it is in the chunk
 		if (0 <= pos_in_w <= 64){
-			if (pos_in_w <= 58){
+			if (pos_in_w <= 56){
+				/* if the nonce is completely in the chunk,
+				   copy it completely at the right location
+				   (the syntax is weird because nonce_position is in bytes
+				    while w is uint32_t*) */
 				*(w + pos_in_w) = nonce_value;
 			}else {
 				// copy only a left part of the nonce
