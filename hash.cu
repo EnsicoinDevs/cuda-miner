@@ -131,7 +131,7 @@ uint32_t *prepare_h_results(int n_of_threads)
 {
 	uint32_t *h_results_pos;
 	// 32 bytes for each tread (256bits)
-	h_results_pos = cudaMalloc(n_of_threads * 32);
+	cudaMalloc((void**) &h_results_pos, n_of_threads * 32);
 	return h_results_pos;
 }
 
@@ -140,7 +140,7 @@ uint32_t **prepare_working_memories(int n_of_threads)
 {
 	uint32_t **working_memories;
 	// 64 word long working memory for each thread
-	working_memories = cudaMalloc(n_of_threads * sizeof(uint32_t) * 64);
+	cudaMalloc((void**) &working_memories, n_of_threads * sizeof(uint32_t) * 64);
 	return working_memories;
 }
 
