@@ -143,7 +143,7 @@ char *preprocess_sha256(uint64_t length, char *array)
     }
 
 
-    // copy array
+    // copy processed array to the device
     cudaMemcpy(device_array, array, final_length, cudaMemcpyHostToDevice);
 
     // free host memory space
@@ -171,3 +171,17 @@ uint32_t *prepare_working_memories(int n_of_threads)
 }
 
 
+/* for test purposes */
+int main(int argc, char *argv[]){
+    char *text;
+    uint64_t text_size = 0;
+    if (argc > 1){
+        text_size = strlen(argv[1]);
+        text = strdup(argv[1]);
+    }else {
+        text = strdup("");
+    }
+    preprocess_sha256(text_size, text);
+
+    return EXIT_SUCCESS;
+}
