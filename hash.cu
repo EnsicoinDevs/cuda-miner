@@ -15,7 +15,7 @@ __constant__ uint32_t cst_k[] = {
 };
 
 __device__
-void sha256(int N, char *array, uint32_t *w, uint32_t *h_result, int nonce_position, uint64_t nonce_value)
+void sha256(uint64_t N, char *array, uint32_t *w, uint32_t *h_result, int nonce_position, uint64_t nonce_value)
 {
     /* N is size of array
        array is preprocessed data to hash
@@ -170,12 +170,76 @@ uint32_t *prepare_working_memories(int n_of_threads)
     return working_memories;
 }
 
+/*
+   Try hashing with a few different nonces,
+   if it has found a hash smaller than target
+   it returns the corresponding nonce.
+   Otherwise it returns 0 (the nonce 0 is never tested)
+*/
+__device__
+uint64_t hash_range(uint64_t N, char *array, uint32_t *w, uint32_t *h_result, int nonce_position, uint32_t *target)
+{
+    for (uint64_t nonce = 1; nonce != 0; nonce ++) {
+        sha256(N, array, w, h_result, nonce_position, nonce);
+        if target_reached(h_result, target) {
+            return nonce
+        }
+        nonce ++;
+    }
+    return 0
+}
+
+__device__
+bool target_reached(uint32_t h_result, uint32_t target)
+{
+    for (int i = 0; i<8; i++) {
+        if(h_result[i] > target[i]) {
+            return false;
+        } else if (h_result[i] < target[i]) {
+            return true;
+        }
+    }
+    /* if h_result == target, consider the target reached */
+    return true;
+}
+
+__global__
+void launch_hash_range(uint64_t N, char *array, uint32_t *w, uint32_t *h_result, int nonce_position, uint32_t *target)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    h_result = h_result + (8*sizeof(uint32_t)) * tid;
+    w = w + (64*sizeof(uint32_t)) * tid;
+    /* TODO : modify a base of the nonce and shift the nonce_position to ensure it is on a fitting address for uint64_t copies */
+    hash_range(N, array, w, h_result, nonce_position, target);
+}
+
+uint64_t find_solution(char *text, uint64_t text_size)
+{
+    int n_of_threads = 2;
+    char *device_text = preprocess_sha256(text_size, text);
+    uint32_t *h_results = prepare_h_results(n_of_threads);
+    uint32_t *working_memories = prepare_working_memories(n_of_threads);
+    /* TODO : launch a bunch of launch_hash_range 
+              and find a way to get resulting nonce 
+              and close every thread when done*/
+}
+
+
+uint32_t *hash_once(char *text, uint64_t text_size)
+{
+    int n_of_threads = 1;
+    char *device_text = preprocess_sha256(text_size, text);
+    uint32_t *h_results = prepare_h_results(n_of_threads);
+    uint32_t *working_memories = prepare_working_memories(n_of_threads);
+}
+
 
 /* for test purposes */
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
     char *text;
     uint64_t text_size = 0;
-    if (argc > 1){
+    if (argc > 1) {
         text_size = strlen(argv[1]);
         text = strdup(argv[1]);
     }else {
